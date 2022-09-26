@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 )
 
+// lmao
 func Execute(command string, blockchain *Blockchain, transactions []*Transaction, utxos *UTXOSet, addressList map[string][]byte) (*Blockchain, []*Transaction, *UTXOSet, map[string][]byte) {
 	command = strings.TrimSuffix(command, "\n")
 	args := strings.Split(command, " ")
@@ -48,32 +48,6 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 		} else {
 			fmt.Println("not enough args")
 		}
-	case "add-transaction":
-		if len(args) >= 4 {
-			number, err := strconv.Atoi(args[3])
-			fmt.Println("attempting to transfer: ", number)
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
-			pubkey := cli_findKey(args[1], addressList)
-			to := cli_findKey(args[2], addressList)
-			if pubkey == nil || to == nil {
-				fmt.Println("sender or recipient not found")
-				break
-			}
-			transaction, err := NewUTXOTransaction(pubkey, GetStringAddress(to), number, *utxos)
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
-			transactions = append(transactions, transaction)
-			fmt.Println("all current transactions: ", transactions)
-			utxos.Update(transactions)
-			return blockchain, transactions, &utxosSet, addressList
-		} else {
-			fmt.Println("not enough args")
-		}
 	case "mine-block":
 		key := cli_findKey(args[1], addressList)
 		blockrw, _ := NewCoinbaseTX(GetStringAddress(key), "")
@@ -89,39 +63,6 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 		return blockchain, transactions, &utxosSet, addressList
 	case "print-chain":
 		fmt.Println("All blocks from the blockchain: \n", blockchain.String())
-	case "print-block":
-		if len(args) >= 2 {
-			block, err := blockchain.GetBlock(Hex2Bytes(args[1]))
-			if err != nil {
-				fmt.Println("error: ", err)
-			} else {
-				fmt.Println("The requested transactions: \n", block.Transactions)
-			}
-		} else {
-			fmt.Println("not enough args")
-		}
-	case "print-transaction":
-		if len(args) >= 2 {
-			transaction, err := blockchain.FindTransaction(Hex2Bytes(args[1]))
-			if err != nil {
-				fmt.Println("error: ", err)
-			} else {
-				fmt.Println("The requested transaction: \n", transaction)
-			}
-		} else {
-			fmt.Println("not enough args")
-		}
-	case "get-balance":
-		if len(args) >= 2 {
-			key := cli_findKey(args[1], addressList)
-			if key == nil {
-				fmt.Println("address not found")
-				break
-			}
-			fmt.Println("balance of ", args[1], " is: ", utxos.getBalance(HashPubKey(key)))
-		} else {
-			fmt.Println("not enough args")
-		}
 	case "help":
 		fmt.Println(help())
 	default:
@@ -155,10 +96,6 @@ func help() string {
 	lines = append(lines, fmt.Sprintf("'mine-block [address]': mines a block committing the transactions and rewarding the address"))
 
 	lines = append(lines, fmt.Sprintf("'print-chain': prints all blocks in the blockchain"))
-	lines = append(lines, fmt.Sprintf("'print-block [hash]': prints all transactions of a block based on hash"))
-	lines = append(lines, fmt.Sprintf("'print-transaction [ID]': prints the content of a transaction"))
-
-	lines = append(lines, fmt.Sprintf("'get-balance [address]: prints the balance of address"))
 
 	lines = append(lines, fmt.Sprintf("'exit: exit"))
 

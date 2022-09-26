@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"strings"
 	"time"
@@ -40,22 +41,15 @@ func (b *Block) Mine() {
 }
 
 // HashTransactions returns a hash of the transactions in the block
-// This function iterates over all transactions in a block, serialize them
-// and make a merkle tree of it.
-// It return the merkle root hash.
 func (b *Block) HashTransactions() []byte {
-	// TODO(student)
-	// This function should iterate over all txs in a block,
-	// serialize them and compute the merkle root of it.
-	// It returns the merkle root hash.
-	var merkleRoot []byte
-	transactions := make([][]byte, len(b.Transactions))
-	for i, j := range b.Transactions {
-		transactions[i] = j.Serialize()
+	var txHash [32]byte
+	var transactions []byte
+	// removed merkle tree and replaced with basic hash of all previous transactions
+	for _, j := range b.Transactions {
+		transactions = append(transactions, j.Serialize()...)
 	}
-	Mtree := NewMerkleTree(transactions)
-	merkleRoot = Mtree.MerkleRootHash()
-	return merkleRoot
+	txHash = sha256.Sum256(transactions)
+	return txHash[:]
 }
 
 // FindTransaction finds a transaction by its ID
