@@ -68,6 +68,19 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return 0, nil
 }
 
+func (pow *ProofOfWork) RunCompete(nonce int) (int, []byte) {
+	// the header is going to be remade a bunch which sucks but it is what it is
+	header := pow.setupHeader()
+	// pretty much the same as normal run except if just returns if the nonce is wrong, also the nonce comes externally
+	nonced := addNonce(nonce, header)
+	hashed := sha256.Sum256(nonced)
+	hashInt := new(big.Int).SetBytes(hashed[:])
+	if hashInt.CmpAbs(pow.target) == -1 {
+		return nonce, hashed[:]
+	}
+	return 0, nil
+}
+
 // Validate validates block's Proof-Of-Work
 // This function just validates if the block header hash
 // is less than the target AND equals to the mined block hash.

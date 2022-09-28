@@ -101,6 +101,25 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) (*Block, error) {
 	return nil, ErrNoValidTx
 }
 
+func (bc *Blockchain) MineBlockCompete(addressList map[string]int) (*Block, error) {
+	for i, j := range addressList {
+		for nonce := 0; nonce < maxNonce; nonce += 1 {
+			tx := NewCoinbaseTX(i, "")
+			transactions := []*Transaction{tx}
+			block := NewBlock(time.Now().Unix(), transactions, bc.CurrentBlock().Hash)
+			for turn := 0; turn < j; turn += 1 {
+				if block.MineCompete(nonce) {
+					if bc.ValidateBlock(block) {
+						bc.addBlock(block)
+						return block, nil
+					}
+				}
+			}
+		}
+	}
+	return nil, ErrNoValidTx
+}
+
 // VerifyTransaction verifies if referred inputs exist
 func (bc Blockchain) VerifyTransaction(tx *Transaction) bool {
 	// TODO(student)

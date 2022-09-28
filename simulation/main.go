@@ -20,7 +20,7 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 		os.Exit(0)
 	case "create-address":
 		if len(args) >= 3 {
-			number, err := strconv.Atoi(args[3])
+			number, err := strconv.Atoi(args[2])
 			if err != nil {
 				fmt.Println(err)
 				break
@@ -31,8 +31,9 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 			fmt.Println("not enough args")
 		}
 	case "print-address-list":
-		for i, _ := range addressList {
-			fmt.Println(i, utxos.getBalance(i))
+		fmt.Println("address | Mining Power | Balance")
+		for i, j := range addressList {
+			fmt.Println(i, j, utxos.getBalance(i))
 		}
 	case "create-blockchain":
 		if len(args) >= 2 {
@@ -45,7 +46,22 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 			fmt.Println("not enough args")
 		}
 	case "mine-blocks":
-		// nrToMine := args[1]
+		nrToMine, err := strconv.Atoi(args[1])
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		for i := 0; i < nrToMine; i += 1 {
+			block, err := blockchain.MineBlockCompete(addressList)
+			if err != nil {
+				fmt.Println("error: ", err)
+			} else {
+				fmt.Println("block has been added to the blockchain: ", block.String())
+			}
+		}
+		utxosSet = blockchain.FindUTXOSet()
+		transactions = []*Transaction{}
+		return blockchain, transactions, &utxosSet, addressList
 	case "mine-block":
 		// take this out later
 		blockrw := NewCoinbaseTX(args[1], "")

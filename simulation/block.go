@@ -40,6 +40,17 @@ func (b *Block) Mine() {
 	b.Nonce = nonce
 }
 
+func (b *Block) MineCompete(nonce int) bool {
+	pow := NewProofOfWork(b)
+	nonce, hash := pow.RunCompete(nonce)
+	if hash != nil {
+		b.Hash = hash
+		b.Nonce = nonce
+		return true
+	}
+	return false
+}
+
 // HashTransactions returns a hash of the transactions in the block
 func (b *Block) HashTransactions() []byte {
 	var txHash [32]byte
