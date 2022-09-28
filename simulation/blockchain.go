@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"strings"
@@ -22,16 +21,14 @@ type Blockchain struct {
 }
 
 // NewBlockchain creates a new blockchain with genesis Block
-func NewBlockchain(address string) (*Blockchain, error) {
+func NewBlockchain(address string) *Blockchain {
 	// TODO(student)
-	tx, err := NewCoinbaseTX(address, GenesisCoinbaseData)
-	if err != nil {
-		return nil, err
-	}
+	//tx := Transaction{}
+	tx := NewCoinbaseTX(GenesisCoinbaseData, "")
 	block := NewGenesisBlock(time.Now().Unix(), tx)
 	var blocks []*Block
 	blocks = append(blocks, block)
-	return &Blockchain{blocks: blocks}, nil
+	return &Blockchain{blocks: blocks}
 }
 
 // addBlock saves the block into the blockchain
@@ -104,13 +101,13 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) (*Block, error) {
 	return nil, ErrNoValidTx
 }
 
-// VerifyTransaction verifies transaction input signatures
-func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+// VerifyTransaction verifies if referred inputs exist
+func (bc Blockchain) VerifyTransaction(tx *Transaction) bool {
 	// TODO(student)
-	// Modify the function to get the inputs referred in tx
-	// and return false in case of some error (i.e. not found the input).
-	// Then call Verify for tx passing those inputs as parameter and return the result.
-	// Remember that coinbase transaction doesn't have input or signature. Thus all coinbase tx are valid.
+	// Check if all inputs of a given transaction refer to a existent transaction made previously
+	// if not, you should return false!
+	// TIP: remember that Coinbase transaction doesn't have input. Thus all coinbase tx are valid
+	// if its coinbase then its valid
 	if tx.IsCoinbase() {
 		return true
 	}
@@ -126,7 +123,8 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
 
 // FindTransaction finds a transaction by its ID in the whole blockchain
 func (bc Blockchain) FindTransaction(ID []byte) (*Transaction, error) {
-	// TODO(student) -- YOU DON'T NEED TO CHANGE YOUR PREVIOUS METHOD
+	// TODO(student)
+	// TIP: the chain is made of what?
 	for _, i := range bc.blocks {
 		for _, j := range i.Transactions {
 			if bytes.Equal(j.ID, ID) {
@@ -134,12 +132,16 @@ func (bc Blockchain) FindTransaction(ID []byte) (*Transaction, error) {
 			}
 		}
 	}
-	return nil, ErrTxNotFound
+	return nil, errors.New("Transaction not found in any block")
 }
 
 // FindUTXOSet finds and returns all unspent transaction outputs
 func (bc Blockchain) FindUTXOSet() UTXOSet {
-	// TODO(student) -- YOU DON'T NEED TO CHANGE YOUR PREVIOUS METHOD
+	// TODO(student)
+	// 1) Search in the blockchain for unspent transactions outputs
+	// 2) Ignore an already spent output
+	// TIP: what determines that an output was spent?
+	// create the utxo set
 	utxo := make(UTXOSet)
 	// range through all the blocks in the blockchain
 	for _, block := range bc.blocks {
@@ -165,51 +167,6 @@ func (bc Blockchain) FindUTXOSet() UTXOSet {
 		}
 	}
 	return utxo
-}
-
-// GetInputTXsOf returns a map index by the ID,
-// of all transactions used as inputs in the given transaction
-func (bc *Blockchain) GetInputTXsOf(tx *Transaction) (map[string]*Transaction, error) {
-	// TODO(student)
-	// Use bc.FindTransaction to search over all transactions
-	// in the blockchain and if the referred input into tx exists,
-	// if so, get the transaction of this input and add it
-	// to a map, where the key is the id of the transaction found
-	// and the value is the pointer to transaction itself.
-	// To use the id as key in the map, convert it to string
-	// using the function: hex.EncodeToString
-	// https://golang.org/pkg/encoding/hex/#EncodeToString
-	var txIds [][]byte
-	for _, in := range tx.Vin {
-		txIds = append(txIds, in.Txid)
-	}
-	txs := make(map[string]*Transaction)
-	for _, id := range txIds {
-		foundtx, err := bc.FindTransaction(id)
-		if err == nil {
-			txs[Bytes2Hex(id)] = foundtx
-		}
-	}
-	return txs, nil
-}
-
-// SignTransaction signs inputs of a Transaction
-func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) error {
-	// TODO(student)
-	// Get the previous transactions referred in the input of tx
-	// and call Sign for tx.
-	prevTXs := make(map[string]*Transaction)
-	// range through the inputs
-	for _, in := range tx.Vin {
-		// find the transactions and rase error if it wasnt found
-		prevTX, err := bc.FindTransaction(in.Txid)
-		if err != nil {
-			return ErrTxNotFound
-		}
-		prevTXs[Bytes2Hex(prevTX.ID)] = prevTX
-	}
-	tx.Sign(privKey, prevTXs)
-	return nil
 }
 
 func (bc Blockchain) String() string {

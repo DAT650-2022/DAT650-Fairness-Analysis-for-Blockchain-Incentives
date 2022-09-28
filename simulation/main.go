@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
 // lmao
-func Execute(command string, blockchain *Blockchain, transactions []*Transaction, utxos *UTXOSet, addressList map[string][]byte) (*Blockchain, []*Transaction, *UTXOSet, map[string][]byte) {
+func Execute(command string, blockchain *Blockchain, transactions []*Transaction, utxos *UTXOSet, addressList map[string]int) (*Blockchain, []*Transaction, *UTXOSet, map[string]int) {
 	command = strings.TrimSuffix(command, "\n")
 	args := strings.Split(command, " ")
 
@@ -18,39 +19,36 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 	case "exit":
 		os.Exit(0)
 	case "create-address":
-		if len(args) >= 2 {
-			_, pub := newKeyPair()
-			addressList[args[1]] = pub
-			fmt.Println("created new public address: ", args[1])
-			fmt.Println("With public key: ", GetStringAddress(pub))
+		if len(args) >= 3 {
+			number, err := strconv.Atoi(args[3])
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			addressList[args[1]] = number
+			fmt.Println("created miner: ", args[1], "with mining power: ", number)
 		} else {
 			fmt.Println("not enough args")
 		}
 	case "print-address-list":
-		for i, j := range addressList {
-			fmt.Println(i, GetStringAddress(j), utxos.getBalance(HashPubKey(j)))
+		for i, _ := range addressList {
+			fmt.Println(i, utxos.getBalance(i))
 		}
 	case "create-blockchain":
 		if len(args) >= 2 {
-			pubkey := cli_findKey(args[1], addressList)
-			if pubkey == nil {
-				fmt.Println("address not found")
-				break
-			}
 			fmt.Println("creating a blockchain with genesis block for address", args[1])
-			blockchain, err := NewBlockchain(GetStringAddress(pubkey))
-			if err != nil {
-				fmt.Println(err)
-			}
+			blockchain := NewBlockchain(args[1])
 			blockchain.FindUTXOSet()
 			utxosSet = blockchain.FindUTXOSet()
 			return blockchain, transactions, &utxosSet, addressList
 		} else {
 			fmt.Println("not enough args")
 		}
+	case "mine-blocks":
+		// nrToMine := args[1]
 	case "mine-block":
-		key := cli_findKey(args[1], addressList)
-		blockrw, _ := NewCoinbaseTX(GetStringAddress(key), "")
+		// take this out later
+		blockrw := NewCoinbaseTX(args[1], "")
 		transactions = append(transactions, blockrw)
 		block, err := blockchain.MineBlock(transactions)
 		utxosSet = blockchain.FindUTXOSet()
@@ -69,21 +67,6 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 		fmt.Println("unknown command")
 	}
 	return blockchain, transactions, &utxosSet, addressList
-}
-
-func cli_hashaddr(addr string) []byte {
-	addByt := []byte(addr)
-	pubKeyHash := Base58Decode(addByt)
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	return pubKeyHash
-}
-
-func cli_findKey(addr string, addressList map[string][]byte) []byte {
-	key, found := addressList[addr]
-	if found {
-		return key
-	}
-	return nil
 }
 
 func help() string {
@@ -113,7 +96,7 @@ func main() {
 	makeutxos := make(UTXOSet)
 	utxos := &makeutxos
 
-	addressList := make(map[string][]byte)
+	addressList := make(map[string]int)
 
 	for {
 		fmt.Print("> ")
