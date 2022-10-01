@@ -28,7 +28,7 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	// or the default "fmt.Sprintf("Reward to %s", to)"
 	// if data is empty.
 	if data == "" {
-		data = fmt.Sprintf("Reward to %s", to)
+		data = fmt.Sprintf("Reward to %s %s", to, RandStringBytes(64))
 	}
 
 	vin := &TXInput{Txid: nil, OutIdx: -1, ScriptSig: data}

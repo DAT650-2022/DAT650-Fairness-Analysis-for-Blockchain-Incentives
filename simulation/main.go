@@ -66,15 +66,16 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 		// take this out later
 		blockrw := NewCoinbaseTX(args[1], "")
 		transactions = append(transactions, blockrw)
+
 		block, err := blockchain.MineBlock(transactions)
-		utxosSet = blockchain.FindUTXOSet()
-		transactions = []*Transaction{}
 		if err != nil {
 			fmt.Println("error: ", err)
 		} else {
+			utxos.Update(transactions)
 			fmt.Println("block has been added to the blockchain: ", block.String())
 		}
-		return blockchain, transactions, &utxosSet, addressList
+		transactions = []*Transaction{}
+		return blockchain, transactions, utxos, addressList
 	case "print-chain":
 		fmt.Println("All blocks from the blockchain: \n", blockchain.String())
 	case "help":
