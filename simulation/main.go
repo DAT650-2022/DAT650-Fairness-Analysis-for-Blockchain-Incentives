@@ -9,7 +9,7 @@ import (
 )
 
 // lmao
-func Execute(command string, blockchain *Blockchain, transactions []*Transaction, utxos *UTXOSet, addressList map[string]int) (*Blockchain, []*Transaction, *UTXOSet, map[string]int) {
+func Execute(command string, blockchain *Blockchain, utxos *UTXOSet, addressList map[string]int) (*Blockchain, *UTXOSet, map[string]int) {
 	command = strings.TrimSuffix(command, "\n")
 	args := strings.Split(command, " ")
 
@@ -18,7 +18,7 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 	switch args[0] {
 	case "exit":
 		os.Exit(0)
-	case "create-address":
+	case "create-address", "change-address":
 		if len(args) >= 3 {
 			number, err := strconv.Atoi(args[2])
 			if err != nil {
@@ -30,43 +30,61 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 		} else {
 			fmt.Println("not enough args")
 		}
-	case "print-address-list":
+	case "address-list", "print-address-list", "a-l":
 		fmt.Println("address | Mining Power | Balance")
 		for i, j := range addressList {
 			fmt.Println(i, j, utxos.getBalance(i))
 		}
-	case "create-blockchain":
+	case "reset-bc", "create-blockchain":
 		if len(args) >= 2 {
 			fmt.Println("creating a blockchain with genesis block for address", args[1])
 			blockchain := NewBlockchain(args[1])
 			blockchain.FindUTXOSet()
 			utxosSet = blockchain.FindUTXOSet()
-			return blockchain, transactions, &utxosSet, addressList
+			return blockchain, &utxosSet, addressList
 		} else {
 			fmt.Println("not enough args")
 		}
-	case "mine-blocks":
-		nrToMine, err := strconv.Atoi(args[1])
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-		for i := 0; i < nrToMine; i += 1 {
-			_, err := blockchain.MineBlockCompete(addressList)
+	case "mine-blocks-pow", "mb-pow":
+		if len(args) >= 2 {
+			nrToMine, err := strconv.Atoi(args[1])
 			if err != nil {
-				fmt.Println("error: ", err)
-			} else {
-				//fmt.Println("block has been added to the blockchain: ", block.String())
+				fmt.Println(err)
+				break
 			}
+			for i := 0; i < nrToMine; i += 1 {
+				_, err := blockchain.MineBlockCompete(addressList)
+				if err != nil {
+					fmt.Println("error: ", err)
+				} else {
+					//fmt.Println("block has been added to the blockchain: ", block.String())
+				}
+			}
+			utxosSet = blockchain.FindUTXOSet()
+			return blockchain, &utxosSet, addressList
+		} else {
+			fmt.Println("not enough args")
 		}
-		utxosSet = blockchain.FindUTXOSet()
-		transactions = []*Transaction{}
-		return blockchain, transactions, &utxosSet, addressList
+	case "multi-mine-blocks-pow", "mmb-pow":
+		if len(args) >= 3 {
+			nrToMine, err := strconv.Atoi(args[1])
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			nrTimesToMine, err := strconv.Atoi(args[1])
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			POW_Mine_Many_Multiple(addressList, nrToMine, nrTimesToMine)
+		} else {
+			fmt.Println("not enough args")
+		}
 	case "mine-block":
 		// take this out later
 		blockrw := NewCoinbaseTX(args[1], "")
-		transactions = append(transactions, blockrw)
-
+		transactions := []*Transaction{blockrw}
 		block, err := blockchain.MineBlock(transactions)
 		if err != nil {
 			fmt.Println("error: ", err)
@@ -74,8 +92,7 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 			utxos.Update(transactions)
 			fmt.Println("block has been added to the blockchain: ", block.String())
 		}
-		transactions = []*Transaction{}
-		return blockchain, transactions, utxos, addressList
+		return blockchain, utxos, addressList
 	case "print-chain":
 		fmt.Println("All blocks from the blockchain: \n", blockchain.String())
 	case "help":
@@ -83,21 +100,22 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 	default:
 		fmt.Println("unknown command")
 	}
-	return blockchain, transactions, &utxosSet, addressList
+	return blockchain, &utxosSet, addressList
 }
 
 func help() string {
 	var lines []string
-	lines = append(lines, fmt.Sprintf("'create-address [address]': creates an address with public and private keys"))
-	lines = append(lines, fmt.Sprintf("'print-address-list': lists all the addresses and their balance"))
+	lines = append(lines, "'create-address [address] [power]': creates an address with mining power, can also be used to change mining power")
+	lines = append(lines, "'address-list': lists all the addresses and their balance")
 
-	lines = append(lines, fmt.Sprintf("'create-blockchain [address]': creates-blockchain with genesis block to given address"))
-	lines = append(lines, fmt.Sprintf("'add-transaction [from] [to] [amount]': add-transaction"))
-	lines = append(lines, fmt.Sprintf("'mine-block [address]': mines a block committing the transactions and rewarding the address"))
+	lines = append(lines, "'reset-bc [address]': resets the blockchain and gives the genesis block to the address")
+	lines = append(lines, "'mine-block [address]': mines a single block for the given address")
+	lines = append(lines, "'mine-blocks-pow [nr]': PoW mines given number of blocks for all addresses")
+	lines = append(lines, "'multi-mine-blocks-pow [nr] [nrT]': PoW mines [nr] of blocks for all addresses [nrT] times ")
 
-	lines = append(lines, fmt.Sprintf("'print-chain': prints all blocks in the blockchain"))
+	lines = append(lines, "'print-chain': prints all blocks in the blockchain")
 
-	lines = append(lines, fmt.Sprintf("'exit: exit"))
+	lines = append(lines, "'exit: exit")
 
 	return strings.Join(lines, "\n")
 }
@@ -108,7 +126,6 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	//blockchain := &Blockchain{}
-	transactions := []*Transaction{}
 
 	makeutxos := make(UTXOSet)
 	utxos := &makeutxos
@@ -131,7 +148,7 @@ func main() {
 			continue
 		}
 
-		blockchain, transactions, utxos, addressList = Execute(input, blockchain, transactions, utxos, addressList)
+		blockchain, utxos, addressList = Execute(input, blockchain, utxos, addressList)
 		fmt.Println("")
 	}
 }

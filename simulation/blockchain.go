@@ -23,8 +23,7 @@ type Blockchain struct {
 // NewBlockchain creates a new blockchain with genesis Block
 func NewBlockchain(address string) *Blockchain {
 	// TODO(student)
-	//tx := Transaction{}
-	tx := NewCoinbaseTX(GenesisCoinbaseData, "")
+	tx := NewCoinbaseTX(address, GenesisCoinbaseData)
 	block := NewGenesisBlock(time.Now().Unix(), tx)
 	var blocks []*Block
 	blocks = append(blocks, block)
@@ -110,11 +109,11 @@ func (bc *Blockchain) MineBlockCompete(addressList map[string]int) (*Block, erro
 			block := NewBlock(time.Now().Unix(), transactions, bc.CurrentBlock().Hash)
 			for nonce = nonce; nonce < maxNonce; nonce += 1 {
 				for turn := 0; turn <= j; turn += 1 {
-					fmt.Println("current miner: ", i)
+					// fmt.Println("current miner: ", i)
 					if block.MineCompete(nonce) {
 						if bc.ValidateBlock(block) {
 							bc.addBlock(block)
-							fmt.Println("added block miner: ", i)
+							// fmt.Println("added block miner: ", i)
 							return block, nil
 						}
 					}

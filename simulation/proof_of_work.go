@@ -10,7 +10,7 @@ import (
 var maxNonce = math.MaxInt64
 
 // TARGETBITS define the mining difficulty
-const TARGETBITS = 8
+const TARGETBITS = 4
 
 // ProofOfWork represents a block mined with a target difficulty
 type ProofOfWork struct {

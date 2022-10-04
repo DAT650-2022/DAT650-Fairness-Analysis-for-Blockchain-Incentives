@@ -59,3 +59,17 @@ func RandStringBytes(n int) string {
 	}
 	return string(b)
 }
+
+// sums a list of ints to compute the average
+func sum(slice []int) int {
+	result := 0
+	for _, i := range slice {
+		result += i
+	}
+	return result
+}
+
+// returns the average of a slice
+func average(slice []int) int {
+	return sum(slice) / len(slice)
+}
