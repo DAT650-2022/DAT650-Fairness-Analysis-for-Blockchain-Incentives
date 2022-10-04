@@ -52,11 +52,11 @@ func Execute(command string, blockchain *Blockchain, transactions []*Transaction
 			break
 		}
 		for i := 0; i < nrToMine; i += 1 {
-			block, err := blockchain.MineBlockCompete(addressList)
+			_, err := blockchain.MineBlockCompete(addressList)
 			if err != nil {
 				fmt.Println("error: ", err)
 			} else {
-				fmt.Println("block has been added to the blockchain: ", block.String())
+				//fmt.Println("block has been added to the blockchain: ", block.String())
 			}
 		}
 		utxosSet = blockchain.FindUTXOSet()
@@ -107,13 +107,18 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	blockchain := &Blockchain{}
+	//blockchain := &Blockchain{}
 	transactions := []*Transaction{}
 
 	makeutxos := make(UTXOSet)
 	utxos := &makeutxos
 
 	addressList := make(map[string]int)
+
+	addressList["a"] = 2
+	addressList["b"] = 2
+
+	blockchain := NewBlockchain("a")
 
 	for {
 		fmt.Print("> ")
