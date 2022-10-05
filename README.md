@@ -4,7 +4,7 @@
 Cant be found yet :)))
 
 ## Go Code
-The Go code can be run be going into the `simulation` directory and running `./simulation` from the terminal. The code is explained in the report and in comments in the code it self.
+The Go code can be run by going into the `simulation` directory and running `./simulation` from the terminal. The code is also explained in the report and in comments in the code itself.
 
 ### Using simulation
 Once the simulation is running by default 2 addresses are present. `a` and `b`, they both have mining power 1 by default. Their mining power can be changed using `create-address [address] [power]`. This can also be used to add more miners to the mining game.
@@ -19,11 +19,10 @@ Once the simulation is running by default 2 addresses are present. `a` and `b`, 
 - `help` shows all these commands in the cli.
 
 ### The new functions:
-All of these functions have comments in the code it self to more directly explain how they work.
+All of these functions have comments in the code itself to explain what each part does.
 
 - `MineBlockCompete()` in `blockchain.go` is a modified version of `MineBlock()`. The difference being that this new function doesn't take in a list of transactions because thats not relevant for this simulation. Instead it takes in a list of addresses (miners) and their mining power. It then ranges through the addresses and lets them try to mine a block.
 - `MineCompete()` in `block.go` is a modified version of `Mine()`. Difference being that it allows for the PoW run function to not return a block. This is important because this is how multiple miners getting their turns is implemented.
 - `RunCompete()` in `proof_of_work.go` is a modified version of `Run()`. Difference being that it only attempts a single nonce for the given header. If the nonce fails it just returns `0, nil` instead of going until it finds a valid hash like `Run()` does.
-
 
 ## Jupyter Notebook
