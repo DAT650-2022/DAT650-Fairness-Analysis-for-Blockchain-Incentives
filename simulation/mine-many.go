@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func POW_Mine_Many_Multiple(addressList map[string]int, nrToMine int, nrTimesToMine int) {
 	balance := make(map[string][]int)
@@ -27,6 +29,9 @@ func POW_Mine_Many_Multiple(addressList map[string]int, nrToMine int, nrTimesToM
 
 	fmt.Println("current blockreward is: ", BlockReward)
 	for current, list := range balance {
-		fmt.Println("avg balance for ", current, " is ", average(list))
+		min, max := findMinAndMax(list)
+		fmt.Println(" avg  |  min  |  max  |  for ", current)
+		fmt.Println(average(list), " , ", min, " , ", max)
+
 	}
 }

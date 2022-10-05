@@ -68,10 +68,11 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return 0, nil
 }
 
+// RunCompete performs the proof-of-work
 func (pow *ProofOfWork) RunCompete(nonce int) (int, []byte) {
-	// the header is going to be remade a bunch which sucks but it is what it is
+	// the header is going to be remade a bunch of times
 	header := pow.setupHeader()
-	// pretty much the same as normal run except if just returns if the nonce is wrong, also the nonce comes externally
+	// the same as in Run except if the nonce isn't valid it just returns anyway
 	nonced := addNonce(nonce, header)
 	hashed := sha256.Sum256(nonced)
 	hashInt := new(big.Int).SetBytes(hashed[:])

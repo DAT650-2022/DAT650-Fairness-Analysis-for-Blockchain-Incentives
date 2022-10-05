@@ -73,3 +73,18 @@ func sum(slice []int) int {
 func average(slice []int) int {
 	return sum(slice) / len(slice)
 }
+
+// returns the highest and lowest value of a slice
+func findMinAndMax(a []int) (min int, max int) {
+	min = a[0]
+	max = a[0]
+	for _, value := range a {
+		if value < min {
+			min = value
+		}
+		if value > max {
+			max = value
+		}
+	}
+	return min, max
+}

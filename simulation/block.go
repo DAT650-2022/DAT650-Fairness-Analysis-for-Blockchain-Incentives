@@ -40,9 +40,12 @@ func (b *Block) Mine() {
 	b.Nonce = nonce
 }
 
+// MineCompete does the same as Mine except it can also fail to return any block
 func (b *Block) MineCompete(nonce int) bool {
 	pow := NewProofOfWork(b)
+	// runs the RunCompete instead of normal Run
 	nonce, hash := pow.RunCompete(nonce)
+	// if RunCompete got a block then return it
 	if hash != nil {
 		b.Hash = hash
 		b.Nonce = nonce

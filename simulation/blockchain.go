@@ -100,29 +100,36 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) (*Block, error) {
 	return nil, ErrNoValidTx
 }
 
+// MineBlockCompete has the given addresslist with mining power compete to mine a new block
 func (bc *Blockchain) MineBlockCompete(addressList map[string]int) (*Block, error) {
 	nonce := 0
 	for {
+		// range through the address list
 		for i, j := range addressList {
+			// create a coinbase transaction and block for the current address
+			// inefficient that it remakes these every time
 			tx := NewCoinbaseTX(i, "")
 			transactions := []*Transaction{tx}
 			block := NewBlock(time.Now().Unix(), transactions, bc.CurrentBlock().Hash)
-			for nonce = nonce; nonce < maxNonce; nonce += 1 {
+			// ranges through the nonces
+			for ; nonce < maxNonce; nonce += 1 {
+				// each address has an amount of turns based on their mining power
 				for turn := 0; turn <= j; turn += 1 {
-					// fmt.Println("current miner: ", i)
+					// runs the compete mine function
 					if block.MineCompete(nonce) {
+						// makes sure the block is valid
 						if bc.ValidateBlock(block) {
+							// adds the block to the blockchain and returns it
 							bc.addBlock(block)
-							// fmt.Println("added block miner: ", i)
 							return block, nil
 						}
 					}
 				}
+				// if no block was found within the turns we go to the next address
 				break
 			}
 		}
 	}
-	return nil, ErrNoValidTx
 }
 
 // VerifyTransaction verifies if referred inputs exist
