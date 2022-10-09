@@ -40,9 +40,6 @@ class Block:
     def hash_block(self):
         return hashbits(self.creator.name + str(self.data) + self.previous_hash + str(self.timestamp))
 
-    def print(self):
-      print(self.data + " "+ self.creator.name + " " + str(self.height))
-        
 class Blockchain:
     def __init__(self, genesis_data, difficulty):
         self.chain = []
@@ -75,14 +72,13 @@ class Blockchain:
         #newBlock.creator.stake+=1
     
     def isSmaller(self, hashStr, creator):
-      #add this function
+      # add this function
       # use int(hashStr[0:15],2) to convert the first 15 bits to int 
       # compare it with the difficulty, multiplicated by the creators stake
       if int(hashStr[0:15],2) < self.difficulty * (creator.stake+self.checkMiner(creator)):
         return True
       return False
 
-    
     def checkMiner(self, miner, last=None):
       if last == None:
         last = self.lastBlock()
@@ -99,6 +95,7 @@ class Minter:
     self.stake = stake
     self.name = name
     self.blockchain = blockchain
+    self.candidate=None
     
     if self.blockchain != None:
       self.blockchain.totalStake += self.stake
@@ -109,12 +106,15 @@ class Minter:
     if latest.height > self.lastBlock.height:
         self.lastBlock = latest
 
-  def PoSSolver(self, seconds):
+  def mine(self,seconds):
     newBlock = Block(str(self.blockchain.size), self, self.lastBlock, seconds)
-    h = newBlock.pos_hash()
+    self.candidate=newBlock
+
+  def PoSSolver(self):
+    h = self.candidate.pos_hash()
     if self.blockchain.isSmaller(h,self):
-      self.blockchain.add(newBlock)
-      self.lastBlock = newBlock
+      self.blockchain.add(self.candidate)
+      self.lastBlock = self.candidate
       # stake power add 10 every time mined a new block
       self.stake=self.stake+10
 
@@ -123,18 +123,19 @@ class Minter:
 def simulation(miners, number, blockchain):
     start_time = time.time()
     while blockchain.size<number:
-        for miner in miners:
-            seconds = (time.time() - start_time)
-            miner.updateLast()
-            miner.PoSSolver(seconds)
+      seconds = (time.time() - start_time)
+      for miner in miners:
+        miner.updateLast()
+        miner.mine(seconds)
+        miner.PoSSolver()
 
 def runSimulation(times,rounds,i_miners,i_bc):
-  ml_initStakes=[0,0,0,0]
-  ml_resultStakes=[0,0,0,0]
-  ml_blockNum=[0,0,0,0]
-  ml_table=[["miner","initial stake","average final stake","average block founded"]]
-  ml_average_bn=[0,0,0,0]
-  ml_average_stakes=[0,0,0,0]
+  initStakes=[0,0,0,0]
+  resultStakes=[0,0,0,0]
+  blockNum=[0,0,0,0]
+  table=[["miner","initial stake","average final stake","average block founded"]]
+  average_bn=[0,0,0,0]
+  average_stakes=[0,0,0,0]
 
   bbc=i_bc.copy()
   mminers=i_miners.copy()
@@ -148,24 +149,22 @@ def runSimulation(times,rounds,i_miners,i_bc):
       simulation(miners,rounds,bc)
       for x, miner in enumerate(miners):
           if i==1: 
-              ml_initStakes[x]=miner.initialstake
-              ml_resultStakes[x]=miner.initialstake+miner.stake
-              ml_blockNum[x]=ml_blockNum[x]+bc.checkMiner(miner)
+              initStakes[x]=miner.initialstake
+              resultStakes[x]=miner.initialstake+miner.stake
+              blockNum[x]= blockNum[x]+bc.checkMiner(miner)
           else:
-              ml_resultStakes[x]=ml_resultStakes[x]+miner.stake    
-              ml_blockNum[x]=ml_blockNum[x]+bc.checkMiner(miner)
-      print("round: ",i)
+              resultStakes[x]= resultStakes[x]+miner.stake    
+              blockNum[x]= blockNum[x]+bc.checkMiner(miner)
       
   for i in range(0,4):
-      name="m"+str(i+1)
-      item=[name,ml_initStakes[i],ml_resultStakes[i]/times,ml_blockNum[i]/times]
-      ml_average_bn[i]=ml_blockNum[i]/times
-      ml_average_stakes[i]=ml_resultStakes[i]/times
-      ml_table.append(item)
+      item=["m"+str(i+1), initStakes[i], resultStakes[i]/times, blockNum[i]/times]
+      average_bn[i]= blockNum[i]/times
+      average_stakes[i]= resultStakes[i]/times
+      table.append(item)
   result={
-    "initial_stake":ml_initStakes,
-    "average_bn":ml_average_bn,
-    "average_stakes":ml_average_stakes,
-    "table":ml_table
+    "initial_stake": initStakes,
+    "average_bn": average_bn,
+    "average_stakes": average_stakes,
+    "table": table
   }
   return result

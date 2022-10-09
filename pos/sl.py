@@ -19,6 +19,7 @@ def hash(input):
     #print(type(inputbytes))
     hash_obj.update(inputbytes)
     return hash_obj.hexdigest()
+
 class Block:
     def __init__(self, data, creator=None, previous=None, time=0):
         self.data = data
@@ -41,10 +42,7 @@ class Block:
 
     def hash_block(self):
         return hashbits(self.creator.name + str(self.data) + self.previous_hash + str(self.timestamp))
-
-    def print(self):
-      print(self.data + " "+ self.creator.name + " " + str(self.height))
-        
+  
 class Blockchain:
     def __init__(self, genesis_data, basetime):
         self.chain = []
@@ -113,7 +111,7 @@ class Minter:
     self.blockchain = blockchain
     # candidate block
     self.candidate=None
-    
+  
     if self.blockchain != None:
       self.blockchain.totalStake += self.stake
       self.lastBlock = blockchain.lastBlock()
@@ -122,11 +120,13 @@ class Minter:
     latest = self.blockchain.lastBlock()
     if latest.height > self.lastBlock.height:
         self.lastBlock = latest
+
   def mine(self,seconds):
     newBlock = Block(str(self.blockchain.size), self, self.lastBlock, seconds)
     h = newBlock.pos_hash()
     self.candidate=newBlock
     self.blockchain.compete(h,self)
+
     
   def PoSSolver(self):
     if self.blockchain.isWinner(self):
@@ -137,22 +137,20 @@ class Minter:
 
 def simulation(miners, number, blockchain):
     start_time = time.time()
-    # add all attesters
     while blockchain.size<number:
         seconds = (time.time() - start_time)
         for miner in miners:
             miner.updateLast()
             miner.mine(seconds)
-        for miner in miners:
             miner.PoSSolver()
 
 def runSimulation(times,rounds,i_miners,i_bc):
-  sl_initStakes=[0,0,0,0]
-  sl_resultStakes=[0,0,0,0]
-  sl_blockNum=[0,0,0,0]
-  sl_table=[["miner","initial stake","average final stake","average block founded"]]
-  sl_average_bn=[0,0,0,0]
-  sl_average_stakes=[0,0,0,0]
+  initStakes=[0,0,0,0]
+  resultStakes=[0,0,0,0]
+  blockNum=[0,0,0,0]
+  table=[["miner","initial stake","average final stake","average block founded"]]
+  average_bn=[0,0,0,0]
+  average_stakes=[0,0,0,0]
 
   bbc=i_bc.copy()
   mminers=i_miners.copy()
@@ -166,24 +164,22 @@ def runSimulation(times,rounds,i_miners,i_bc):
       simulation(miners,rounds,bc)
       for x, miner in enumerate(miners):
           if i==1: 
-              sl_initStakes[x]=miner.initialstake
-              sl_resultStakes[x]=miner.initialstake+miner.stake
-              sl_blockNum[x]=sl_blockNum[x]+bc.checkMiner(miner)
+              initStakes[x]=miner.initialstake
+              resultStakes[x]=miner.initialstake+miner.stake
+              blockNum[x]= blockNum[x]+bc.checkMiner(miner)
           else:
-              sl_resultStakes[x]=sl_resultStakes[x]+miner.stake    
-              sl_blockNum[x]=sl_blockNum[x]+bc.checkMiner(miner)
-      print("round: ",i)
-
+              resultStakes[x]= resultStakes[x]+miner.stake    
+              blockNum[x]= blockNum[x]+bc.checkMiner(miner)
+      
   for i in range(0,4):
-      item=["m"+str(i+1),sl_initStakes[i],sl_resultStakes[i]/times,sl_blockNum[i]/times]
-      sl_average_bn[i]=sl_blockNum[i]/times
-      sl_average_stakes[i]=sl_resultStakes[i]/times
-      sl_table.append(item)
-  
+      item=["m"+str(i+1), initStakes[i], resultStakes[i]/times, blockNum[i]/times]
+      average_bn[i]= blockNum[i]/times
+      average_stakes[i]= resultStakes[i]/times
+      table.append(item)
   result={
-    "initial_stake":sl_initStakes,
-    "average_bn":sl_average_bn,
-    "average_stakes":sl_average_stakes,
-    "table":sl_table
+    "initial_stake": initStakes,
+    "average_bn": average_bn,
+    "average_stakes": average_stakes,
+    "table": table
   }
   return result

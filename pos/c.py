@@ -137,14 +137,16 @@ def simulation(miners, number, blockchain):
             seconds = (time.time() - start_time)
             miner.updateLast()
             miner.PoSSolver(seconds)
+      
+
 
 def runSimulation(times,rounds,i_miners,i_bc):
-  c_initStakes=[0,0,0,0]
-  c_resultStakes=[0,0,0,0]
-  c_blockNum=[0,0,0,0]
-  c_table=[["miner","initial stake","average final stake","average block founded"]]
-  c_average_bn=[0,0,0,0]
-  c_average_stakes=[0,0,0,0]
+  initStakes=[0,0,0,0]
+  resultStakes=[0,0,0,0]
+  blockNum=[0,0,0,0]
+  table=[["miner","initial stake","average final stake","average block founded"]]
+  average_bn=[0,0,0,0]
+  average_stakes=[0,0,0,0]
 
   bbc=i_bc.copy()
   mminers=i_miners.copy()
@@ -158,24 +160,22 @@ def runSimulation(times,rounds,i_miners,i_bc):
       simulation(miners,rounds,bc)
       for x, miner in enumerate(miners):
           if i==1: 
-              c_initStakes[x]=miner.initialstake
-              c_resultStakes[x]=miner.initialstake+miner.stake
-              c_blockNum[x]=c_blockNum[x]+bc.checkMiner(miner)
+              initStakes[x]=miner.initialstake
+              resultStakes[x]=miner.initialstake+miner.stake
+              blockNum[x]= blockNum[x]+bc.checkMiner(miner)
           else:
-              c_resultStakes[x]=c_resultStakes[x]+miner.stake    
-              c_blockNum[x]=c_blockNum[x]+bc.checkMiner(miner)
-      print("round: ",i)
-
+              resultStakes[x]= resultStakes[x]+miner.stake    
+              blockNum[x]= blockNum[x]+bc.checkMiner(miner)
+      
   for i in range(0,4):
-      item=["m"+str(i+1),c_initStakes[i],c_resultStakes[i]/times,c_blockNum[i]/times]
-      c_average_bn[i]=c_blockNum[i]/times
-      c_average_stakes[i]=c_resultStakes[i]/times
-      c_table.append(item)
-
+      item=["m"+str(i+1), initStakes[i], resultStakes[i]/times, blockNum[i]/times]
+      average_bn[i]= blockNum[i]/times
+      average_stakes[i]= resultStakes[i]/times
+      table.append(item)
   result={
-    "initial_stake":c_initStakes,
-    "average_bn":c_average_bn,
-    "average_stakes":c_average_stakes,
-    "table":c_table
+    "initial_stake": initStakes,
+    "average_bn": average_bn,
+    "average_stakes": average_stakes,
+    "table": table
   }
   return result
