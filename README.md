@@ -25,4 +25,38 @@ All of these functions have comments in the code itself to explain what each par
 - `MineCompete()` in `block.go` is a modified version of `Mine()`. Difference being that it allows for the PoW run function to not return a block. This is important because this is how multiple miners getting their turns is implemented.
 - `RunCompete()` in `proof_of_work.go` is a modified version of `Run()`. Difference being that it only attempts a single nonce for the given header. If the nonce fails it just returns `0, nil` instead of going until it finds a valid hash like `Run()` does.
 
-## Jupyter Notebook
+## Python code
+### Structure
+In `./pos` folder are the implementations of PoS:
+- `c.py` is the implementation of Compound PoS.
+- `ml.py` is the implementation of Multi-lottery PoS.
+- `sl.py` is the implementation of Single-lottery PoS.
+- `simulation_PoS.ipynb` is for the simulation.
+
+More details of implementation are in the report.
+
+### Simulation
+#### Initialize
+Use `simulation_PoS.ipynb` to run simulation of three types of PoS.
+In the second block, the default setting is to run 1000 rounds 100 times. Set by `rounds=1000` and `times=100`.
+For the miners, each miner can be set by `miner=[initial_stake, name]`, for example `m1=[10,"m1"]` which means set a miner named `m1` and got initial stake as `10`. Default setting is 4 different miners, which are:
+1. Miner 1 named `m1`, staking power is `10`.
+2. Miner 2 named `m2`, staking power is `5`.
+3. Miner 3 named `m3`, staking power is `20`.
+4. Miner 4 named `m4`, staking power is `2`.
+
+All the miners need to be combined in one array like `miners=[m1,m2,m3,m4]` for simulation functions.
+The blockchain can be set by `blockchain=[genesis data, difficulty]`, there is a default blockchain with parameters `genesis_data=0` and `difficulty=10`. <br/>
+#### Run
+After initializing the miners and blockchain, use different functions to run the simulations for different types of PoS. 
+- `ml(...args)` for Multi-lottery PoS.
+- `sl(...args)` for Single-lottery PoS.
+- `c(...args)` for Compound PoS.
+
+They all take the same arguments,
+- `times` the number of running times for the simulation.
+- `rounds` the number of rounds for each times of the simulation.
+- `bc` the blockchain used to simulate.
+- `miners` the miners. 
+#### Result
+The result is present in tables and plots. Three tables for each type of PoS, show the initial stake, the average final stake, and the number of average blocks mined by each miner. The first plot compares the average final stake from each miner, and the second plot compares the number of average blocks mined by each miner.
