@@ -4,10 +4,10 @@
 Cant be found yet :)))
 
 ## Go Code
-The Go code can be run by going into the `simulation` directory and running `./simulation` from the terminal. The code is also explained in the report and in comments in the code itself.
+The Go code can be run by going into the `pow` directory and running `./pow` from the terminal. The code is also explained in the report and in comments in the code itself.
 
 ### Using simulation
-Once the simulation is running by default 2 addresses are present. `a` and `b`, they both have mining power 1 by default. Their mining power can be changed using `create-address [address] [power]`. This can also be used to add more miners to the mining game.
+Once the simulation is running by default 4 addresses are present. `a`, `b` `c` and `d`, they all have mining power 1 by default. Their mining power can be changed using `create-address [address] [power]`. This can also be used to add more miners to the mining game.
 
 - `create-address [address] [power]` can either change the mining power or create new addresses for the mining game.
 - `mine-block [address]` will mine a single block for the given address.
@@ -24,6 +24,7 @@ All of these functions have comments in the code itself to explain what each par
 - `MineBlockCompete()` in `blockchain.go` is a modified version of `MineBlock()`. The difference being that this new function doesn't take in a list of transactions because thats not relevant for this simulation. Instead it takes in a list of addresses (miners) and their mining power. It then ranges through the addresses and lets them try to mine a block.
 - `MineCompete()` in `block.go` is a modified version of `Mine()`. Difference being that it allows for the PoW run function to not return a block. This is important because this is how multiple miners getting their turns is implemented.
 - `RunCompete()` in `proof_of_work.go` is a modified version of `Run()`. Difference being that it only attempts a single nonce for the given header. If the nonce fails it just returns `0, nil` instead of going until it finds a valid hash like `Run()` does.
+- `POW_Mine_Many_Multiple()` in `mine-many.go` creates a new blockchain for each run and mines a given number of blocks. After it has finished mining the blocks it will add the balance of the miners to a map which will print out the average, max and min stake when its finished.
 
 ## Python code
 ### Structure

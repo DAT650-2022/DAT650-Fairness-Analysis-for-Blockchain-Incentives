@@ -132,8 +132,10 @@ func main() {
 
 	addressList := make(map[string]int)
 
-	addressList["a"] = 2
-	addressList["b"] = 2
+	addressList["a"] = 1
+	addressList["b"] = 1
+	addressList["c"] = 1
+	addressList["d"] = 1
 
 	blockchain := NewBlockchain("a")
 
