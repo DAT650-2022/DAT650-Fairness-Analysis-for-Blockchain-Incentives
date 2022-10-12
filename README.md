@@ -60,4 +60,4 @@ They all take the same arguments,
 - `bc` the blockchain used to simulate.
 - `miners` the miners. 
 #### Result
-The result is present in tables and plots. Three tables for each type of PoS, show the initial stake, the average final stake, and the number of average blocks mined by each miner. The first plot compares the average final stake from each miner, and the second plot compares the number of average blocks mined by each miner.
+The result is present in tables and plots. Three tables for each type of PoS, show the initial stake, the number of average blocks mined by each miner and their success probability of proposed a valid block. The first plot compares the average final stake from each miner, the second plot compares the number of average blocks mined by each miner, and the third one compare their success probability.
