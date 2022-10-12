@@ -103,6 +103,7 @@ class Minter:
     self.stake = stake
     self.name = name
     self.blockchain = blockchain
+    self.proposed=0
     
     if self.blockchain != None:
       self.blockchain.totalStake += self.stake
@@ -115,6 +116,7 @@ class Minter:
 
   def PoSSolver(self, seconds):
     newBlock = Block(str(self.blockchain.size), self, self.lastBlock, seconds)
+    self.proposed=self.proposed+1
     h = newBlock.pos_hash()
     if self.blockchain.isSmaller(h,self):
       self.blockchain.add(newBlock)
@@ -144,9 +146,11 @@ def runSimulation(times,rounds,i_miners,i_bc):
   initStakes=[0,0,0,0]
   resultStakes=[0,0,0,0]
   blockNum=[0,0,0,0]
-  table=[["miner","initial stake","average final stake","average block founded"]]
+  table=[["miner","initial stake","average block founded","average proposed number","success probability"]]
   average_bn=[0,0,0,0]
   average_stakes=[0,0,0,0]
+  proposed=[0,0,0,0]
+  average_rate=[0,0,0,0]
 
   bbc=i_bc.copy()
   mminers=i_miners.copy()
@@ -163,19 +167,24 @@ def runSimulation(times,rounds,i_miners,i_bc):
               initStakes[x]=miner.initialstake
               resultStakes[x]=miner.initialstake+miner.stake
               blockNum[x]= blockNum[x]+bc.checkMiner(miner)
+              proposed[x]=proposed[x]+miner.proposed
           else:
               resultStakes[x]= resultStakes[x]+miner.stake    
               blockNum[x]= blockNum[x]+bc.checkMiner(miner)
+              proposed[x]=proposed[x]+miner.proposed
       
   for i in range(0,4):
-      item=["m"+str(i+1), initStakes[i], resultStakes[i]/times, blockNum[i]/times]
       average_bn[i]= blockNum[i]/times
+      average_rate[i]=average_bn[i]/(proposed[i]/times)
       average_stakes[i]= resultStakes[i]/times
+      item=["m"+str(i+1), initStakes[i], average_bn[i],proposed[i]/times,average_rate[i]]
       table.append(item)
   result={
     "initial_stake": initStakes,
     "average_bn": average_bn,
     "average_stakes": average_stakes,
-    "table": table
+    "table": table,
+    "rate":average_rate,
+    "proposed":proposed
   }
   return result
