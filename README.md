@@ -1,7 +1,7 @@
 # DAT650 Group Project 8 -  Do the Rich Get Richer? Fairness Analysis for Blockchain Incentives
 
 ## Report
-Cant be found yet :)))
+The source `.tex` files for the report can be found in the `report` directory. The report it self is the `report.pdf` file in the root directory.
 
 ## Go Code
 The Go code can be run by going into the `pow` directory and running `./pow` from the terminal. The code is also explained in the report and in comments in the code itself.
